@@ -31,9 +31,3 @@ This repository uses GitHub Actions to:
 1. Check for updates to the upstream `alpine:latest` image daily.
 2. Rebuild and push to Docker Hub automatically when an update is detected.
 3. Handle version tagging dynamically based on the Alpine release string.
-
-## Setup Instructions
-
-To use the automated build, you must set the following secrets in your GitHub repository:
-- `DOCKER_HUB_USERNAME`: Your Docker Hub username.
-- `DOCKER_HUB_TOKEN`: A Personal Access Token (PAT) with write access.
