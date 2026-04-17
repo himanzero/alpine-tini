@@ -1,0 +1,90 @@
+name: Docker Publish
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight UTC
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: himanzero/alpine-tini
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Check if the upstream alpine image has been updated
+      # Only run this check on schedule triggers
+      - name: Check for base image update
+        id: check
+        uses: lucacome/docker-image-update-checker@v1
+        with:
+          base-image: alpine:latest
+          image: ${{ env.IMAGE_NAME }}:latest
+        if: github.event_name == 'schedule'
+        continue-on-error: true # In case the target image doesn't exist yet
+
+      # Decide whether to build
+      # Build if:
+      # 1. Update is detected on schedule
+      # 2. It's a manual trigger (workflow_dispatch)
+      # 3. It's a push to main
+      # 4. Update check failed (assume first run)
+      - name: Set up build flag
+        id: build_flag
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]] || [[ "${{ steps.check.outputs.needs-updating }}" == "true" ]] || [[ "${{ steps.check.outcome }}" == "failure" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up QEMU
+        if: steps.build_flag.outputs.should_build == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.build_flag.outputs.should_build == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: steps.build_flag.outputs.should_build == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      # Extract the Alpine version to use as a tag
+      - name: Get Alpine Version
+        if: steps.build_flag.outputs.should_build == 'true'
+        id: alpine_version
+        run: |
+          docker pull alpine:latest
+          VERSION=$(docker run --rm alpine:latest cat /etc/alpine-release)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract Docker metadata
+        if: steps.build_flag.outputs.should_build == 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.alpine_version.outputs.version }}
+
+      - name: Build and push Docker image
+        if: steps.build_flag.outputs.should_build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
