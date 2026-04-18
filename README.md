@@ -1,5 +1,7 @@
 # Alpine Tini
 
+[![Build and Push Docker Image](https://github.com/himanzero/alpine-tini/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/himanzero/alpine-tini/actions/workflows/docker-publish.yml)
+
 A minimal Docker image based on [Alpine Linux](https://alpinelinux.org/) with [Tini](https://github.com/krallin/tini) installed as the init process.
 
 ## Why Tini?
