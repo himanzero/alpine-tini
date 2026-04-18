@@ -8,7 +8,7 @@ To ensure the automated build and Docker Hub description sync work correctly, yo
 
 | Secret Name | Description |
 | :--- | :--- |
-| `DOCKER_HUB_USERNAME` | Your Docker Hub username (`himanzero`). |
+| `DOCKER_HUB_USERNAME` | Your Docker Hub username. |
 | `DOCKER_HUB_TOKEN` | A Personal Access Token (PAT) with write access. |
 
 ## Manual Rebuilds
