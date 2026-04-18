@@ -25,6 +25,17 @@ FROM himanzero/alpine-tini:latest
 # Your configuration here
 ```
 
+## Dockerfile
+
+Here is the source `Dockerfile` used to build this image:
+
+```dockerfile
+FROM alpine:latest
+RUN apk add --no-cache tini
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["/bin/sh"]
+```
+
 ## Automated Rebuilds
 
 This repository uses GitHub Actions to:

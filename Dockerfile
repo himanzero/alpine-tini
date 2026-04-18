@@ -4,6 +4,8 @@ FROM alpine:latest
 # Metadata
 LABEL maintainer="himanzero"
 LABEL description="Alpine Linux with Tini init"
+LABEL org.opencontainers.image.source="https://github.com/himanzero/alpine-tini"
+LABEL org.opencontainers.image.description="Alpine Linux with Tini init"
 
 # Install tini via apk
 # --no-cache avoids storing the cache locally, keeping the image small
@@ -15,4 +17,4 @@ ENTRYPOINT ["/sbin/tini", "--"]
 
 # Default command to run
 # This can be overridden when running the container
-CMD ["/bin/sh"]
+CMD ["/bin/sh" "-l"]
